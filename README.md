@@ -8,6 +8,24 @@ A lightweight Kafka-compatible message broker written in Go, focused on adhering
 - ⚡ Protocol-faithful — parses and responds using Kafka's actual binary protocol
 - 🚀 Written in idiomatic Go — simple concurrency, channels, and TCP-based transport
 
+## Project Structure
+
+gofkgo/
+├── README.md
+├── go.mod
+├── cmd/
+│   └── gofkgo/          # main entrypoint (e.g., broker executable)
+│       └── main.go
+├── pkg/
+│   ├── protocol/        # Kafka protocol encoding/decoding
+│   ├── broker/          # core broker logic (topics, partitions, etc.)
+│   └── transport/       # TCP connection handling, framing, etc.
+├── internal/
+│   └── testutil/        # internal helpers for testing
+└── docs/
+    └── protocol.md      # reference to Kafka wire protocol details
+
+
 ## Getting Started
 
 ```bash
