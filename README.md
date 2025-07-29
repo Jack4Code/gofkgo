@@ -9,7 +9,7 @@ A lightweight Kafka-compatible message broker written in Go, focused on adhering
 - 🚀 Written in idiomatic Go — simple concurrency, channels, and TCP-based transport
 
 ## Project Structure
-
+```bash
 gofkgo/
 ├── README.md
 ├── go.mod
@@ -24,7 +24,7 @@ gofkgo/
 │   └── testutil/        # internal helpers for testing
 └── docs/
     └── protocol.md      # reference to Kafka wire protocol details
-
+```
 
 ## Getting Started
 
