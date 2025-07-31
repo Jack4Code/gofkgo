@@ -8,3 +8,6 @@ type MessageRequest struct {
 	ClientID      string
 	Payload       []byte
 }
+
+type MessageResponse struct {
+}

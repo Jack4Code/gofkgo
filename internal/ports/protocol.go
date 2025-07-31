@@ -6,8 +6,6 @@ import (
 	"net"
 )
 
-//type ProtocolHandler func([]byte, net.Conn) error
-
 type ProtocolPort interface {
 	ProtocolHandler([]byte, net.Conn) error
 	ReadFullMessage(reader *bufio.Reader) ([]byte, error)
