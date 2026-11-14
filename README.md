@@ -4,9 +4,9 @@ A lightweight Kafka-compatible message broker written in Go, focused on adhering
 
 ## Goals
 
-- 🧪 Minimal and educational — designed for developers who want to understand how Kafka works under the hood
-- ⚡ Protocol-faithful — parses and responds using Kafka's actual binary protocol
-- 🚀 Written in idiomatic Go — simple concurrency, channels, and TCP-based transport
+- Minimal and educational -- designed for developers who want to understand how Kafka works under the hood
+- Protocol-faithful -- parses and responds using Kafka's actual binary protocol
+- Written in Go -- simple concurrency, channels, and TCP-based transport
 
 ## Project Structure
 ```bash
