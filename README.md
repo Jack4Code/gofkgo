@@ -34,6 +34,23 @@ cd gofkgo
 go run ./cmd/gofkgo
 ```
 
+## Reference Kafka
+
+`compose.yaml` runs a real single-node Kafka (KRaft) on `localhost:9092` to compare responses against. gofkgo stays on `:9090`.
+
+```bash
+docker compose up -d --wait
+docker compose down
+```
+
+Send a raw ApiVersions v0 request and dump the response:
+
+```bash
+printf '\x00\x00\x00\x0e\x00\x12\x00\x00\x00\x00\x00\x01\x00\x04test' | timeout 3 nc localhost 9092 | xxd
+```
+
+Point the same command at `9090` to compare with gofkgo.
+
 ## Status
 Currently in development — expect bugs, wire format weirdness, and imcomplete feature support. PRs welcome.
 
