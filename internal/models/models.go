@@ -1,10 +1,10 @@
 package models
 
 type MessageRequest struct {
-	MessageSize   uint32
-	APIKey        uint16
-	APIVersion    uint16
-	CorrelationID uint32
+	MessageSize   int32
+	APIKey        int16
+	APIVersion    int16
+	CorrelationID int32
 	ClientID      string
 	Payload       []byte
 }
