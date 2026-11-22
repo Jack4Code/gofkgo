@@ -4,11 +4,21 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"gofkgo/internal/models"
 	"gofkgo/internal/ports"
 	"io"
 	"net"
+)
+
+// MaxMessageSize matches Kafka's default socket.request.max.bytes.
+const MaxMessageSize = 100 * 1024 * 1024
+
+var (
+	ErrMessageTooLarge = errors.New("message size exceeds limit")
+	ErrNegativeSize    = errors.New("negative message size")
+	ErrSizeMismatch    = errors.New("message size does not match frame length")
 )
 
 type ProtocolSvc struct {
@@ -32,7 +42,7 @@ func (p *ProtocolSvc) ProtocolHandler(data []byte, c net.Conn) error {
 	respSize := 4 + len(respPayload) // correlation_id (4 bytes) + payload
 
 	var buf bytes.Buffer
-	_ = binary.Write(&buf, binary.BigEndian, uint32(respSize))  // total response size
+	_ = binary.Write(&buf, binary.BigEndian, int32(respSize))   // total response size
 	_ = binary.Write(&buf, binary.BigEndian, hdr.CorrelationID) // match request ID
 	_, _ = buf.Write(respPayload)                               // response body
 
@@ -45,20 +55,32 @@ func (p *ProtocolSvc) ReadFullMessage(reader *bufio.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	messageSize := binary.BigEndian.Uint32(sizeHeader)
-	totalSize := 4 + int(messageSize)
+	messageSize := int32(binary.BigEndian.Uint32(sizeHeader))
+	if messageSize < 0 {
+		return nil, ErrNegativeSize
+	}
+	if messageSize > MaxMessageSize {
+		return nil, fmt.Errorf("%w: %d bytes", ErrMessageTooLarge, messageSize)
+	}
 
-	fullMessage := make([]byte, totalSize)
-	_, err = io.ReadFull(reader, fullMessage)
-	return fullMessage, err
+	fullMessage := make([]byte, 4+int(messageSize))
+	if _, err := io.ReadFull(reader, fullMessage); err != nil {
+		return nil, err
+	}
+	return fullMessage, nil
 }
 
+// ParseMessage parses a request header (v1: no tagged fields) and returns
+// whatever follows it as the payload.
 func (p *ProtocolSvc) ParseMessage(data []byte) (*models.MessageRequest, []byte, error) {
 	buf := bytes.NewReader(data)
 	var req models.MessageRequest
 
 	if err := binary.Read(buf, binary.BigEndian, &req.MessageSize); err != nil {
 		return nil, nil, err
+	}
+	if int(req.MessageSize) != len(data)-4 {
+		return nil, nil, fmt.Errorf("%w: header says %d, got %d", ErrSizeMismatch, req.MessageSize, len(data)-4)
 	}
 	if err := binary.Read(buf, binary.BigEndian, &req.APIKey); err != nil {
 		return nil, nil, err
@@ -73,21 +95,16 @@ func (p *ProtocolSvc) ParseMessage(data []byte) (*models.MessageRequest, []byte,
 	if err := binary.Read(buf, binary.BigEndian, &clientIDLen); err != nil {
 		return nil, nil, err
 	}
-	if clientIDLen < 0 {
-		req.ClientID = ""
-	} else {
+	if clientIDLen >= 0 {
 		clientIDBytes := make([]byte, clientIDLen)
-		if _, err := buf.Read(clientIDBytes); err != nil {
+		if _, err := io.ReadFull(buf, clientIDBytes); err != nil {
 			return nil, nil, err
 		}
 		req.ClientID = string(clientIDBytes)
 	}
 
-	payload := make([]byte, req.MessageSize)
-	if _, err := buf.Read(payload); err != nil {
-		return nil, nil, err
-	}
-	req.Payload = payload
+	offset := len(data) - buf.Len()
+	req.Payload = data[offset:]
 
-	return &req, payload, nil
+	return &req, req.Payload, nil
 }

@@ -21,11 +21,11 @@ func NewServer(addr string, h ports.ProtocolPort) ports.Server {
 func (s *Server) Start() error {
 	ln, err := net.Listen("tcp", s.Addr)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer ln.Close()
 
-	fmt.Printf("Server is listening on port %s...", s.Addr)
+	fmt.Printf("Server is listening on %s\n", s.Addr)
 
 	for {
 		conn, err := ln.Accept()
