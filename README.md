@@ -1,5 +1,7 @@
 # GofkGo
 
+> **Work in progress.** Not usable as a broker yet. No Kafka client can talk to it.
+
 A lightweight Kafka-compatible message broker written in Go, focused on adhering closely to the [Kafka wire protocol](https://kafka.apache.org/protocol.html) for interoperability and learning purposes.
 
 ## Goals
@@ -11,19 +13,14 @@ A lightweight Kafka-compatible message broker written in Go, focused on adhering
 ## Project Structure
 ```bash
 gofkgo/
-├── README.md
-├── go.mod
-├── cmd/
-│   └── gofkgo/          # main entrypoint (e.g., broker executable)
-│       └── main.go
-├── pkg/
-│   ├── protocol/        # Kafka protocol encoding/decoding
-│   ├── broker/          # core broker logic (topics, partitions, etc.)
-│   └── transport/       # TCP connection handling, framing, etc.
+├── cmd/gofkgo/          # entrypoint
 ├── internal/
-│   └── testutil/        # internal helpers for testing
-└── docs/
-    └── protocol.md      # reference to Kafka wire protocol details
+│   ├── app/             # wires dependencies together
+│   ├── models/          # request types
+│   ├── ports/           # interfaces
+│   ├── protocol/        # framing and header parsing
+│   └── server/          # TCP listener and connection handling
+└── compose.yaml         # reference Kafka for comparing responses
 ```
 
 ## Getting Started
@@ -52,7 +49,7 @@ printf '\x00\x00\x00\x0e\x00\x12\x00\x00\x00\x00\x00\x01\x00\x04test' | timeout 
 Point the same command at `9090` to compare with gofkgo.
 
 ## Status
-Currently in development — expect bugs, wire format weirdness, and imcomplete feature support. PRs welcome.
+Early development. Right now it accepts TCP connections and parses request headers, but doesn't send real Kafka responses yet. Next up is ApiVersions, then Metadata, Produce and Fetch. PRs welcome.
 
 ## License
 MIT
